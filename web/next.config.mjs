@@ -8,12 +8,6 @@ const nextConfig = {
   // The repo also contains the Lambda package; pin the app root to this folder.
   turbopack: {
     root: fileURLToPath(new URL('.', import.meta.url)),
-    rules: {
-      '*.css': {
-        loaders: ['@tailwindcss/turbopack'],
-        as: '*.css',
-      },
-    },
   },
   poweredByHeader: false,
 };
