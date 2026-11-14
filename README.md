@@ -271,15 +271,6 @@ copies the sample CSVs from `data/`. [`vercel.json`](web/vercel.json) pins the f
   issued by the web app, reserved concurrency and AWS WAF rate limiting.
 - **Bulk insert with `COPY`.** Prisma `createMany` is fine at 15k rows (~0.5 s); at millions of rows I'd stream into a
   staging table with `COPY` and merge in SQL.
-- **Treat time as continuous, not per upload.** Today each upload is its own dataset. In production, overlapping uploads
-  should merge into one timeline per service (the `(service, slot)` key already makes that safe), with the upload kept
-  as provenance.
-- **Agent health as a first-class signal.** When agents disagree, it could be the agent that is broken. With more
-  agents I'd use majority voting and track per-agent disagreement rates.
-- **Configurable SLA per service and contract**, stored in the database, with credits computed in currency.
-- **Infrastructure as code** (SAM/Terraform) instead of an SDK script, and end-to-end tests (Playwright) for the
-  upload → dashboard flow.
-- **Precomputed rollups** (daily per-service aggregates) once datasets get large, rather than computing on read.
 
 ### AI on top of the pipeline, never inside the credit decision
 
