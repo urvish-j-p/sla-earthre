@@ -29,7 +29,7 @@ export default function UploadResult({ result, elapsedMs, onReset }) {
     >
       {duplicate && (
         <Alert
-          className="!mb-4"
+          className="mb-4!"
           type="info"
           showIcon
           title="This exact file was already processed"
@@ -46,7 +46,7 @@ export default function UploadResult({ result, elapsedMs, onReset }) {
       </div>
 
       <Descriptions
-        className="!mt-6"
+        className="mt-6!"
         size="small"
         column={{ xs: 1, md: 2 }}
         bordered

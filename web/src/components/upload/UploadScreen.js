@@ -8,7 +8,7 @@ import {
   InboxOutlined,
 } from '@ant-design/icons';
 import { Alert, App, Button, Card, Progress, Steps, Tag, Typography, Upload } from 'antd';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { fmtBytes } from '@/lib/format';
 import UploadResult from './UploadResult';
 
@@ -20,6 +20,7 @@ const MAX_BYTES = 5 * 1024 * 1024; // must match the Lambda limit
  * fetch, because fetch has no upload-progress events.
  */
 function sendToLambda(blob, fileName, { onProgress, onUploaded }) {
+  const started = performance.now();
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open('POST', INGEST_URL);
@@ -37,7 +38,7 @@ function sendToLambda(blob, fileName, { onProgress, onUploaded }) {
       } catch {
         // non-JSON error page
       }
-      if (xhr.status >= 200 && xhr.status < 300) resolve(body);
+      if (xhr.status >= 200 && xhr.status < 300) resolve({ body, elapsedMs: Math.round(performance.now() - started) });
       else {
         const err = new Error(body.error ?? `Ingest failed with HTTP ${xhr.status}`);
         err.details = body.details;
@@ -57,7 +58,6 @@ export default function UploadScreen() {
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
   const [samples, setSamples] = useState([]);
-  const startedAt = useRef(0);
   const [elapsedMs, setElapsedMs] = useState(0);
 
   useEffect(() => {
@@ -88,13 +88,12 @@ export default function UploadScreen() {
     setError(null);
     setProgress(0);
     setPhase('uploading');
-    startedAt.current = performance.now();
     try {
-      const body = await sendToLambda(blob, name, {
+      const { body, elapsedMs: ms } = await sendToLambda(blob, name, {
         onProgress: setProgress,
         onUploaded: () => setPhase('processing'),
       });
-      setElapsedMs(Math.round(performance.now() - startedAt.current));
+      setElapsedMs(ms);
       setResult(body);
       setPhase('done');
     } catch (err) {
@@ -124,10 +123,10 @@ export default function UploadScreen() {
   return (
     <div className="mx-auto max-w-5xl space-y-6">
       <div>
-        <Typography.Title level={3} className="!mb-1">
+        <Typography.Title level={3} className="mb-1!">
           Upload health-check logs
         </Typography.Title>
-        <Typography.Paragraph type="secondary" className="!mb-0">
+        <Typography.Paragraph type="secondary" className="mb-0!">
           The CSV goes straight to a stateless AWS Lambda function. It parses, validates and cleans the data, stores
           it in Postgres, and returns a data-quality report. Re-uploading an identical file is safe: you get the existing
           dataset back.
@@ -192,7 +191,7 @@ export default function UploadScreen() {
 
         {phase === 'error' && error && (
           <Alert
-            className="!mt-4"
+            className="mt-4!"
             type="error"
             showIcon
             title={error.status === 422 ? 'The file was rejected' : 'Upload failed'}
@@ -224,7 +223,7 @@ export default function UploadScreen() {
           <div className="flex flex-wrap gap-2">
             {samples.map((s) => (
               <Button key={s.name} onClick={() => trySample(s)} disabled={busy}>
-                {s.days}-day dataset <Tag className="!ml-2 !mr-0">{fmtBytes(s.sizeBytes)}</Tag>
+                {s.days}-day dataset <Tag className="ml-2! mr-0!">{fmtBytes(s.sizeBytes)}</Tag>
               </Button>
             ))}
           </div>
