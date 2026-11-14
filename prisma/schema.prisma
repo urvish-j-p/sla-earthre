@@ -1,0 +1,87 @@
+// Single source of truth for the database schema.
+// Shared by the ingest Lambda (writes) and the Next.js dashboard (reads).
+
+generator client {
+  provider = "prisma-client-js"
+  // "native" for local dev, "rhel-openssl-3.0.x" for AWS Lambda (Node 22, Amazon Linux 2023)
+  // and Vercel serverless functions.
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
+}
+
+datasource db {
+  provider  = "postgresql"
+  // Pooled connection (PgBouncer) used by serverless runtimes.
+  url       = env("DATABASE_URL")
+  // Direct connection used only by `prisma migrate`.
+  directUrl = env("DIRECT_URL")
+}
+
+enum UploadStatus {
+  COMPLETED
+  FAILED
+}
+
+/// Outcome of one 15-minute health-check slot for one service, after merging
+/// every agent report for that slot.
+enum CheckOutcome {
+  UP // 2xx / 3xx
+  DOWN // 5xx: counts against the SLA
+  UNKNOWN // no trustworthy status (invalid code, 4xx probe error): excluded from SLA math
+}
+
+/// One CSV upload processed by the ingest function. Every stored check belongs
+/// to exactly one upload, so datasets never bleed into each other.
+model Upload {
+  id            String       @id @default(uuid()) @db.Uuid
+  fileName      String       @map("file_name")
+  /// SHA-256 of the raw file bytes: makes re-uploads idempotent.
+  fileHash      String       @map("file_hash")
+  fileSizeBytes Int          @map("file_size_bytes")
+  status        UploadStatus
+  errorMessage  String?      @map("error_message")
+  /// Observed monitoring window [windowStart, windowEnd), inferred from the data.
+  windowStart   DateTime?    @map("window_start")
+  windowEnd     DateTime?    @map("window_end")
+  rowsReceived  Int          @default(0) @map("rows_received")
+  rowsRejected  Int          @default(0) @map("rows_rejected")
+  checksStored  Int          @default(0) @map("checks_stored")
+  /// Full data-quality report produced by the pipeline (issues, counts, samples, coverage).
+  qualityReport Json?        @map("quality_report")
+  processingMs  Int?         @map("processing_ms")
+  createdAt     DateTime     @default(now()) @map("created_at")
+
+  checks Check[]
+
+  @@index([fileHash, status])
+  @@index([createdAt])
+  @@map("uploads")
+}
+
+/// A cleaned, de-duplicated health check: exactly one row per (upload, service, slot).
+model Check {
+  id          BigInt       @id @default(autoincrement())
+  uploadId    String       @map("upload_id") @db.Uuid
+  serviceId   String       @map("service_id")
+  serviceName String       @map("service_name")
+  /// Slot start in UTC, aligned to the 15-minute check grid.
+  checkedAt   DateTime     @map("checked_at")
+  outcome     CheckOutcome
+  statusCode  Int?         @map("status_code")
+  /// Latency normalised to milliseconds; null when missing or invalid in the source.
+  latencyMs   Float?       @map("latency_ms")
+  region      String?
+  agents      String[]
+  /// Number of raw CSV rows merged into this check.
+  reportCount Int          @map("report_count")
+  /// Data-quality issue codes applied to this check (see lambda/src/pipeline/issues.js).
+  flags       String[]
+  /// Lineage: the raw rows (line number, agent, original values) this check was built from.
+  sources     Json
+
+  upload Upload @relation(fields: [uploadId], references: [id], onDelete: Cascade)
+
+  @@unique([uploadId, serviceId, checkedAt])
+  @@index([uploadId, checkedAt])
+  @@index([uploadId, outcome])
+  @@map("checks")
+}

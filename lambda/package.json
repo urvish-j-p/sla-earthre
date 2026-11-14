@@ -1,0 +1,26 @@
+{
+  "name": "sla-ingest-lambda",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Stateless AWS Lambda that parses, validates, cleans and persists SLA health-check CSVs",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "prisma": {
+    "schema": "../prisma/schema.prisma"
+  },
+  "scripts": {
+    "postinstall": "prisma generate",
+    "test": "node --test test/",
+    "dev": "node --env-file=../.env scripts/dev-server.mjs",
+    "package": "node scripts/package.mjs",
+    "deploy": "node --env-file-if-exists=../.env scripts/deploy.mjs"
+  },
+  "dependencies": {
+    "@prisma/client": "6.19.3"
+  },
+  "devDependencies": {
+    "prisma": "6.19.3"
+  }
+}
