@@ -280,3 +280,28 @@ copies the sample CSVs from `data/`. [`vercel.json`](web/vercel.json) pins the f
 - **Infrastructure as code** (SAM/Terraform) instead of an SDK script, and end-to-end tests (Playwright) for the
   upload → dashboard flow.
 - **Precomputed rollups** (daily per-service aggregates) once datasets get large, rather than computing on read.
+
+### AI on top of the pipeline, never inside the credit decision
+
+The credit calculation must stay deterministic and auditable, so an LLM would never compute or change an SLA number.
+AI fits around it, to help people investigate faster:
+
+- **Ask the data in plain English (agent + tool use / MCP).** "Why did payments-api breach in April?" An LLM agent
+  answers by calling tools that wrap the existing read API (`get_stats`, `query_checks`, `get_incident`), so every
+  number in the answer comes from the same code as the dashboard, and the agent cites the checks it used. The same
+  tools exposed as an **MCP server** would let on-call engineers query SLA data from Claude or their IDE.
+- **Draft incident summaries and post-mortems.** From an incident's checks, status codes, latency and lineage, an LLM
+  drafts a timeline and customer-facing summary for a human to review. The facts come from structured data; the model
+  only writes the prose.
+- **RAG over runbooks and past incidents (pgvector).** Embed runbooks and resolved incidents in **pgvector** inside the
+  same Postgres (no extra vector database to run), and show "similar past incidents and how they were fixed" next
+  to each new incident.
+- **Onboard new log formats.** When a new monitoring agent sends an unfamiliar CSV, an LLM proposes the column mapping
+  and normalisation rules. The deterministic pipeline then validates them against sample rows, and a human approves
+  before they are saved as configuration. The model suggests; it never parses production data directly.
+- **Orchestrated triage (LangGraph).** Once there are several steps (detect incident → gather logs → retrieve
+  similar incidents → draft summary → wait for human approval), a graph-based workflow like LangGraph makes the
+  steps, retries and the human-in-the-loop checkpoint explicit. I'd start with plain tool use and adopt a
+  framework only when the workflow needs it.
+- **Guardrails:** read-only tools, answers must cite check IDs, and an evaluation set (e.g. the provided answer key)
+  to catch regressions when prompts or models change.
