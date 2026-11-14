@@ -290,18 +290,11 @@ AI fits around it, to help people investigate faster:
   answers by calling tools that wrap the existing read API (`get_stats`, `query_checks`, `get_incident`), so every
   number in the answer comes from the same code as the dashboard, and the agent cites the checks it used. The same
   tools exposed as an **MCP server** would let on-call engineers query SLA data from Claude or their IDE.
-- **Draft incident summaries and post-mortems.** From an incident's checks, status codes, latency and lineage, an LLM
-  drafts a timeline and customer-facing summary for a human to review. The facts come from structured data; the model
-  only writes the prose.
-- **RAG over runbooks and past incidents (pgvector).** Embed runbooks and resolved incidents in **pgvector** inside the
-  same Postgres (no extra vector database to run), and show "similar past incidents and how they were fixed" next
-  to each new incident.
-- **Onboard new log formats.** When a new monitoring agent sends an unfamiliar CSV, an LLM proposes the column mapping
-  and normalisation rules. The deterministic pipeline then validates them against sample rows, and a human approves
-  before they are saved as configuration. The model suggests; it never parses production data directly.
-- **Orchestrated triage (LangGraph).** Once there are several steps (detect incident → gather logs → retrieve
-  similar incidents → draft summary → wait for human approval), a graph-based workflow like LangGraph makes the
-  steps, retries and the human-in-the-loop checkpoint explicit. I'd start with plain tool use and adopt a
-  framework only when the workflow needs it.
-- **Guardrails:** read-only tools, answers must cite check IDs, and an evaluation set (e.g. the provided answer key)
-  to catch regressions when prompts or models change.
+- **RAG over runbooks and past incidents (LangChain + Qdrant).** Index runbooks and resolved incident reports in a
+  **Qdrant** vector database using **LangChain** for chunking, embeddings and retrieval. When a new incident is
+  detected, the dashboard shows "similar past incidents and how they were fixed", with links to the source
+  documents, so on-call starts from what worked last time.
+- **Orchestrated triage (LangGraph).** Model incident response as a **LangGraph** workflow: detect incident → pull its
+  checks and lineage → retrieve similar cases from Qdrant → draft a summary → pause for human approval before
+  anything is sent to a customer. The graph makes each step, retry and the human-in-the-loop checkpoint explicit
+  and testable.
