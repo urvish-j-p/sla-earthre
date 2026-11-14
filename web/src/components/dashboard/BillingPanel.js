@@ -55,7 +55,7 @@ export default function BillingPanel({ stats }) {
             rowKey="serviceId"
             dataSource={p.services}
             pagination={false}
-            scroll={{ x: 700 }}
+            scroll={{ x: 'max-content' }}
             columns={[
               { title: 'Service', dataIndex: 'serviceName', render: (n) => <span className="font-medium">{n}</span> },
               {

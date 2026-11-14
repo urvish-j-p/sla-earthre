@@ -14,7 +14,7 @@ export default function AppHeader() {
   const pathname = usePathname();
   return (
     <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/90 backdrop-blur">
-      <div className="mx-auto flex h-14 max-w-[1440px] items-center gap-6 px-4 sm:px-6">
+      <div className="mx-auto flex h-14 max-w-[1440px] items-center gap-3 px-3 sm:gap-6 sm:px-6">
         <Link href="/" className="flex items-center gap-2 text-slate-900">
           <span className="grid h-8 w-8 place-items-center rounded-lg bg-teal-700 text-sm font-bold text-white">SLA</span>
           <span className="hidden font-semibold tracking-tight sm:inline">SLA Monitor</span>
@@ -26,7 +26,7 @@ export default function AppHeader() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm transition-colors ${
+                className={`flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm transition-colors sm:px-3 ${
                   active ? 'bg-teal-50 font-medium text-teal-800' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                 }`}
               >

@@ -1,7 +1,7 @@
 'use client';
 
 import { ClearOutlined, DownloadOutlined } from '@ant-design/icons';
-import { Alert, Button, Card, DatePicker, Segmented, Select, Table, Tag, Tooltip } from 'antd';
+import { Alert, Button, Card, DatePicker, Grid, Segmented, Select, Table, Tag, Tooltip } from 'antd';
 import dayjs from 'dayjs';
 import { useMemo, useState } from 'react';
 import { SEVERITY } from '@/components/IssuesTable';
@@ -20,6 +20,7 @@ function SourceRows({ sources }) {
         rowKey={(r) => `${r.line}`}
         dataSource={sources}
         pagination={false}
+        scroll={{ x: 'max-content' }}
         columns={[
           { title: 'Line', dataIndex: 'line', width: 70 },
           { title: 'Agent', dataIndex: 'agent' },
@@ -47,6 +48,7 @@ function SourceRows({ sources }) {
  * plus service / outcome / data-quality flag. Filters live in the URL.
  */
 export default function LogsSection({ uploadId, stats, filters, setParams }) {
+  const screens = Grid.useBreakpoint(); // full-width toggle below xl, natural width on laptops
   const [pageSize, setPageSize] = useState(50);
   const [sort, setSort] = useState('asc');
 
@@ -97,27 +99,33 @@ export default function LogsSection({ uploadId, stats, filters, setParams }) {
   const summary = data?.summary;
 
   return (
-    <Card
-      title={
-        <div className="flex flex-wrap items-baseline gap-x-3">
-          <span>Check log</span>
+    <Card styles={{ body: { padding: 0 } }}>
+      {/* Custom header: wraps on small screens instead of truncating like Card's title bar. */}
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-4 py-3 sm:px-6">
+        <div className="min-w-0">
+          <div className="text-base font-semibold">Check log</div>
           {summary && (
-            <span className="text-sm font-normal text-slate-500">
+            <div className="text-sm text-slate-500">
               {fmtInt(data.total)} checks · <span className="text-green-700">{fmtInt(summary.UP)} up</span> ·{' '}
               <span className="text-red-600">{fmtInt(summary.DOWN)} down</span>
               {summary.UNKNOWN > 0 && <> · {fmtInt(summary.UNKNOWN)} unknown</>}
-            </span>
+            </div>
           )}
         </div>
-      }
-      extra={
         <a href={exportUrl} download>
           <Button icon={<DownloadOutlined />}>Export CSV</Button>
         </a>
-      }
-    >
-      <div className="mb-4 flex flex-wrap items-center gap-2">
+      </div>
+
+      <div className="p-3 sm:p-6">
+      {/*
+        Filters: 1 column on phones, 2 on tablets, one row on laptops.
+        Every control has a FIXED width: multi-selects with maxTagCount="responsive"
+        re-measure their tags, and an auto-growing width made them flicker in a resize loop.
+      */}
+      <div className="mb-4 grid grid-cols-1 gap-2 sm:grid-cols-2 xl:flex xl:flex-wrap xl:items-center">
         <Segmented
+          block={!screens.xl}
           value={mode}
           onChange={(m) => {
             setModePref(m);
@@ -130,6 +138,7 @@ export default function LogsSection({ uploadId, stats, filters, setParams }) {
         />
         {mode === 'day' ? (
           <DatePicker
+            className="w-full xl:w-44!"
             placeholder="Any day (UTC)"
             value={filters.from ? dayjs(filters.from, DAY) : null}
             disabledDate={disabledDate}
@@ -138,6 +147,7 @@ export default function LogsSection({ uploadId, stats, filters, setParams }) {
           />
         ) : (
           <DatePicker.RangePicker
+            className="w-full xl:w-64!"
             value={filters.from ? [dayjs(filters.from, DAY), dayjs(filters.to ?? filters.from, DAY)] : null}
             disabledDate={disabledDate}
             defaultPickerValue={[dayjs(firstDay, DAY), dayjs(firstDay, DAY)]}
@@ -148,7 +158,7 @@ export default function LogsSection({ uploadId, stats, filters, setParams }) {
           mode="multiple"
           allowClear
           placeholder="All services"
-          className="min-w-50"
+          className="w-full xl:w-52!"
           maxTagCount="responsive"
           value={filters.services}
           onChange={(v) => setParams({ service: v })}
@@ -158,7 +168,8 @@ export default function LogsSection({ uploadId, stats, filters, setParams }) {
           mode="multiple"
           allowClear
           placeholder="Any outcome"
-          className="min-w-40"
+          className="w-full xl:w-44!"
+          maxTagCount="responsive"
           value={filters.outcomes}
           onChange={(v) => setParams({ outcome: v })}
           options={['UP', 'DOWN', 'UNKNOWN'].map((o) => ({ value: o, label: o }))}
@@ -167,8 +178,10 @@ export default function LogsSection({ uploadId, stats, filters, setParams }) {
           mode="multiple"
           allowClear
           placeholder="Any data-quality flag"
-          className="min-w-55"
+          className="w-full sm:col-span-2 xl:w-80!"
           maxTagCount="responsive"
+          popupMatchSelectWidth={false}
+          optionFilterProp="label"
           value={filters.flags}
           onChange={(v) => setParams({ flag: v })}
           options={stats.quality.issues
@@ -177,6 +190,7 @@ export default function LogsSection({ uploadId, stats, filters, setParams }) {
         />
         {hasFilters && (
           <Button
+            className="sm:col-span-2 xl:col-span-1"
             icon={<ClearOutlined />}
             onClick={() => setParams({ from: null, to: null, service: null, outcome: null, flag: null })}
           >
@@ -193,7 +207,7 @@ export default function LogsSection({ uploadId, stats, filters, setParams }) {
         loading={loading}
         dataSource={data?.items ?? []}
         rowClassName={(row) => (inIncident(row) ? 'row-in-incident' : '')}
-        scroll={{ x: 1000 }}
+        scroll={{ x: 'max-content' }}
         expandable={{ expandedRowRender: (row) => <SourceRows sources={row.sources} /> }}
         onChange={(pagination, _filters, sorter) => {
           const nextSort = sorter?.field === 'checkedAt' && sorter.order === 'descend' ? 'desc' : 'asc';
@@ -217,10 +231,9 @@ export default function LogsSection({ uploadId, stats, filters, setParams }) {
             sorter: true,
             sortOrder: sort === 'desc' ? 'descend' : 'ascend',
             sortDirections: ['ascend', 'descend', 'ascend'],
-            width: 170,
             render: (t, row) => (
               <span className="tabular whitespace-nowrap">
-                {fmtUtc(t, 'DD MMM YYYY HH:mm')}
+                {fmtUtc(t, screens.sm ? 'DD MMM YYYY HH:mm' : 'DD MMM HH:mm')}
                 {inIncident(row) && (
                   <Tooltip title="Part of a detected incident">
                     <span className="ml-1 text-red-600">●</span>
@@ -229,7 +242,7 @@ export default function LogsSection({ uploadId, stats, filters, setParams }) {
               </span>
             ),
           },
-          { title: 'Service', dataIndex: 'serviceName', width: 140 },
+          { title: 'Service', dataIndex: 'serviceName', render: (n) => <span className="whitespace-nowrap">{n}</span> },
           {
             title: 'Outcome',
             dataIndex: 'outcome',
@@ -239,6 +252,7 @@ export default function LogsSection({ uploadId, stats, filters, setParams }) {
           {
             title: 'HTTP',
             dataIndex: 'statusCode',
+            responsive: ['sm'],
             width: 70,
             render: (c) => <span className={`tabular ${c >= 500 ? 'font-semibold text-red-600' : ''}`}>{c ?? '–'}</span>,
           },
@@ -246,6 +260,7 @@ export default function LogsSection({ uploadId, stats, filters, setParams }) {
           {
             title: 'Agents',
             dataIndex: 'agents',
+            responsive: ['lg'],
             width: 150,
             render: (agents, row) => (
               <Tooltip title={`${row.reportCount} raw row(s) · region ${row.region ?? 'n/a'}`}>
@@ -256,6 +271,7 @@ export default function LogsSection({ uploadId, stats, filters, setParams }) {
           {
             title: 'Data-quality flags',
             dataIndex: 'flags',
+            responsive: ['md'],
             render: (flags) =>
               flags.length === 0 ? (
                 <span className="text-xs text-slate-400">clean</span>
@@ -276,6 +292,7 @@ export default function LogsSection({ uploadId, stats, filters, setParams }) {
           },
         ]}
       />
+      </div>
     </Card>
   );
 }

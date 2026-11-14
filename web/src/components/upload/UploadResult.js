@@ -12,21 +12,21 @@ export default function UploadResult({ result, elapsedMs, onReset }) {
   const totals = report?.totals ?? {};
 
   return (
-    <Card
-      title="Pipeline report"
-      extra={
-        <div className="flex gap-2">
-          <Button icon={<ReloadOutlined />} onClick={onReset}>
+    <Card>
+      {/* Header + actions wrap onto two lines on phones instead of overflowing the card title bar. */}
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+        <h3 className="m-0 text-base font-semibold">Pipeline report</h3>
+        <div className="flex w-full gap-2 sm:w-auto">
+          <Button className="flex-1 sm:flex-none" icon={<ReloadOutlined />} onClick={onReset}>
             Upload another
           </Button>
-          <Link href={`/?upload=${upload.id}`}>
-            <Button type="primary" icon={<ArrowRightOutlined />} iconPlacement="end">
+          <Link href={`/?upload=${upload.id}`} className="flex-1 sm:flex-none">
+            <Button block type="primary" icon={<ArrowRightOutlined />} iconPlacement="end">
               Open dashboard
             </Button>
           </Link>
         </div>
-      }
-    >
+      </div>
       {duplicate && (
         <Alert
           className="mb-4!"
@@ -37,7 +37,7 @@ export default function UploadResult({ result, elapsedMs, onReset }) {
         />
       )}
 
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
         <Statistic title="Rows received" value={fmtInt(totals.rowsReceived)} />
         <Statistic title="Rows rejected" value={fmtInt(totals.rowsRejected)} styles={{ content: { color: totals.rowsRejected ? '#dc2626' : undefined } }} />
         <Statistic title="Merged duplicates" value={fmtInt(totals.rowsMergedAway)} />

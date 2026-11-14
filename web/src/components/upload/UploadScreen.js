@@ -214,6 +214,7 @@ export default function UploadScreen() {
       {(phase === 'idle' || phase === 'error') && samples.length > 0 && (
         <Card
           size="small"
+          styles={{ title: { whiteSpace: 'normal' } }}
           title={
             <span className="flex items-center gap-2">
               <ExperimentOutlined /> No file at hand? Try one of the provided datasets

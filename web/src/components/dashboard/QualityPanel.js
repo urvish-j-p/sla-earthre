@@ -16,7 +16,7 @@ export default function QualityPanel({ stats }) {
         <code>{upload.fileName}</code> and how each was handled. Every stored check keeps its flags and the raw rows it was
         built from (expand any row in the log below).
       </p>
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
         <Statistic title="Raw rows" value={fmtInt(t.rowsReceived)} />
         <Statistic title="Rejected" value={fmtInt(t.rowsRejected)} />
         <Statistic title="Merged (duplicates / multi-agent)" value={fmtInt(t.rowsMergedAway)} />

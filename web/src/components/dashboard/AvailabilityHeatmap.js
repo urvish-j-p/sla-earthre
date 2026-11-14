@@ -45,7 +45,7 @@ export default function AvailabilityHeatmap({ stats, onDrillDown }) {
       <div className="overflow-x-auto pb-2">
         <div
           className="grid min-w-max gap-[3px]"
-          style={{ gridTemplateColumns: `130px repeat(${daily.days.length}, minmax(22px, 1fr))` }}
+          style={{ gridTemplateColumns: `minmax(88px, 130px) repeat(${daily.days.length}, minmax(22px, 1fr))` }}
         >
           <div />
           {daily.days.map((d, i) => (

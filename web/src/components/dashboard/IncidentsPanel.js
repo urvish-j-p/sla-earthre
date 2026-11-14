@@ -14,7 +14,7 @@ function Timeline({ stats, onSelect }) {
 
   return (
     <div className="rounded-lg border border-slate-200 p-4">
-      <div className="relative ml-[130px] h-5">
+      <div className="relative ml-24 h-5 sm:ml-[130px]">
         {daily.days.map((d, i) =>
           i % tickEvery === 0 ? (
             <span key={d} className="absolute -translate-x-1/2 text-[10px] text-slate-500" style={{ left: `${(i / daily.days.length) * 100}%` }}>
@@ -25,7 +25,7 @@ function Timeline({ stats, onSelect }) {
       </div>
       {services.map((s) => (
         <div key={s.serviceId} className="flex items-center">
-          <div className="w-[130px] shrink-0 truncate pr-2 text-xs font-medium text-slate-700">{s.serviceName}</div>
+          <div className="w-24 shrink-0 truncate pr-2 text-xs sm:w-[130px] font-medium text-slate-700">{s.serviceName}</div>
           <div className="relative my-1 h-6 flex-1 rounded bg-green-100">
             {incidents
               .filter((i) => i.serviceId === s.serviceId)
@@ -77,7 +77,7 @@ export default function IncidentsPanel({ stats, onDrillDown }) {
           rowKey="id"
           dataSource={incidents}
           pagination={false}
-          scroll={{ x: 900 }}
+          scroll={{ x: 'max-content' }}
           columns={[
             { title: 'Service', dataIndex: 'serviceName', render: (n, i) => <span className="font-medium">{n}</span> },
             {

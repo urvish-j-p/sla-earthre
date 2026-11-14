@@ -12,6 +12,8 @@ export const theme = {
   token: {
     colorPrimary: '#0f766e',
     colorInfo: '#0f766e',
+    colorInfoBg: '#f0fdfa',
+    colorInfoBorder: '#99f6e4',
     colorSuccess: '#16a34a',
     colorWarning: '#d97706',
     colorError: '#dc2626',

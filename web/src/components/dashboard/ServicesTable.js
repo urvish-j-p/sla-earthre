@@ -17,14 +17,15 @@ export default function ServicesTable({ stats, onDrillDown }) {
       rowKey="serviceId"
       dataSource={services}
       pagination={false}
-      scroll={{ x: 1000 }}
+      // size columns to their content and scroll sideways on narrow screens, never squash/overlap
+      scroll={{ x: 'max-content' }}
       columns={[
         {
           title: 'Service',
           dataIndex: 'serviceName',
           fixed: 'left',
           render: (name, s) => (
-            <div>
+            <div className="whitespace-nowrap">
               <div className="font-medium">{name}</div>
               <code className="text-[11px] text-slate-500">{s.serviceId}</code>
             </div>
@@ -35,10 +36,12 @@ export default function ServicesTable({ stats, onDrillDown }) {
           dataIndex: 'availabilityPct',
           sorter: (a, b) => (a.availabilityPct ?? 0) - (b.availabilityPct ?? 0),
           render: (pct, s) => (
-            <div className="flex items-center gap-2">
-              <span className="h-2.5 w-2.5 rounded-full" style={{ background: availabilityColor(pct) }} />
-              <span className={`tabular font-semibold ${s.breached ? 'text-red-600' : 'text-green-700'}`}>{fmtPct(pct)}</span>
-              {s.breached ? <Tag color="red">Breach</Tag> : <Tag color="green">Met</Tag>}
+            <div className="whitespace-nowrap">
+              <div className="flex items-center gap-2">
+                <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: availabilityColor(pct) }} />
+                <span className={`tabular font-semibold ${s.breached ? 'text-red-600' : 'text-green-700'}`}>{fmtPct(pct)}</span>
+              </div>
+              {s.breached ? <Tag color="red" className="mt-1!">Breach</Tag> : <Tag color="green" className="mt-1!">Met</Tag>}
             </div>
           ),
         },
@@ -47,7 +50,7 @@ export default function ServicesTable({ stats, onDrillDown }) {
           dataIndex: 'downtimeMinutes',
           sorter: (a, b) => a.downtimeMinutes - b.downtimeMinutes,
           render: (m, s) => (
-            <div className="tabular">
+            <div className="tabular whitespace-nowrap">
               {fmtMinutes(m)}
               <div className="text-xs text-slate-500">{fmtInt(s.down)} failed checks</div>
             </div>
@@ -63,14 +66,14 @@ export default function ServicesTable({ stats, onDrillDown }) {
           width: 200,
           sorter: (a, b) => (a.budgetUsedPct ?? 0) - (b.budgetUsedPct ?? 0),
           render: (used, s) => (
-            <div>
+            <div className="min-w-44">
               <Progress
                 percent={Math.min(100, used ?? 0)}
                 showInfo={false}
                 size="small"
                 status={used > 100 ? 'exception' : 'normal'}
               />
-              <div className="tabular text-xs text-slate-500">
+              <div className="tabular whitespace-nowrap text-xs text-slate-500">
                 {used === null ? '–' : `${fmtInt(Math.round(used))}% of ${s.allowedDowntimeMinutes} min used`}
               </div>
             </div>
@@ -82,7 +85,7 @@ export default function ServicesTable({ stats, onDrillDown }) {
           ),
           key: 'incidents',
           render: (_, s) => (
-            <span className="tabular">
+            <span className="tabular whitespace-nowrap">
               <span className={s.incidentCount ? 'font-semibold text-red-600' : ''}>{s.incidentCount}</span>
               <span className="text-slate-400"> / </span>
               {fmtInt(s.isolatedFailures)}
@@ -94,7 +97,7 @@ export default function ServicesTable({ stats, onDrillDown }) {
           key: 'latency',
           render: (_, s) => (
             <Tooltip title={`p99 ${fmtMs(s.latency.p99)} · max ${fmtMs(s.latency.max)} · ${fmtInt(s.latency.samples)} samples`}>
-              <span className="tabular">
+              <span className="tabular whitespace-nowrap">
                 {fmtInt(s.latency.p50)} / {fmtMs(s.latency.p95)}
               </span>
             </Tooltip>
@@ -104,7 +107,7 @@ export default function ServicesTable({ stats, onDrillDown }) {
           title: 'Last check',
           key: 'last',
           render: (_, s) => (
-            <div>
+            <div className="whitespace-nowrap">
               <Tag color={s.lastCheck.outcome === 'UP' ? 'green' : s.lastCheck.outcome === 'DOWN' ? 'red' : 'default'}>
                 {s.lastCheck.outcome}
               </Tag>

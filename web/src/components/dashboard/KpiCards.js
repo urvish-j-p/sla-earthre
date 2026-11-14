@@ -7,16 +7,16 @@ import { fmtInt, fmtMinutes, fmtPct } from '@/lib/format';
 function Kpi({ label, value, sub, tone = 'neutral', hint }) {
   const toneClass = { bad: 'text-red-600', good: 'text-green-700', warn: 'text-amber-600', neutral: 'text-slate-900' }[tone];
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-4">
-      <div className="flex items-center gap-1 text-xs font-medium uppercase tracking-wide text-slate-500">
+    <div className="min-w-0 rounded-lg border border-slate-200 bg-white p-3 sm:p-4">
+      <div className="flex items-start gap-1 text-[11px] font-medium uppercase leading-4 tracking-wide text-slate-500 sm:text-xs">
         {label}
         {hint && (
           <Tooltip title={hint}>
-            <InfoCircleOutlined className="cursor-help text-slate-400" />
+            <InfoCircleOutlined className="mt-0.5 cursor-help text-slate-400" />
           </Tooltip>
         )}
       </div>
-      <div className={`tabular mt-1 text-2xl font-semibold ${toneClass}`}>{value}</div>
+      <div className={`tabular mt-1 text-xl font-semibold sm:text-2xl ${toneClass}`}>{value}</div>
       {sub && <div className="mt-1 text-xs text-slate-500">{sub}</div>}
     </div>
   );
@@ -35,7 +35,7 @@ export default function KpiCards({ stats }) {
   const belowTarget = fleet.availabilityPct !== null && fleet.availabilityPct < config.targetPct;
 
   return (
-    <div className="grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-7">
+    <div className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-4 2xl:grid-cols-7">
       <Kpi
         label="Fleet availability"
         value={fmtPct(fleet.availabilityPct)}

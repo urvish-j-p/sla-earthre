@@ -35,6 +35,7 @@ export default function IssuesTable({ issues, size = 'middle' }) {
       rowKey="code"
       dataSource={issues}
       pagination={false}
+      scroll={{ x: 760 }}
       expandable={{ expandedRowRender: (row) => <Samples samples={row.samples} /> }}
       columns={[
         {
