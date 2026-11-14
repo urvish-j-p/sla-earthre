@@ -254,7 +254,7 @@ and prints the URL.
 
 **3 · Web (Vercel)**: import the repo, set **Root Directory = `web`**, and add env vars `DATABASE_URL` and
 `NEXT_PUBLIC_INGEST_URL` (the Function URL from step 2). Deploy. (`postinstall` runs `prisma generate`; `prebuild`
-copies the sample CSVs from `data/`.)
+copies the sample CSVs from `data/`. [`vercel.json`](web/vercel.json) pins the functions to `sin1` (Singapore), next to the database: Vercel's default US region would add a round trip across the world to every query.)
 
 **Redeploy on demand**: `(cd lambda && npm run deploy)` for the function; `git push` or "Redeploy" in Vercel for the web.
 
