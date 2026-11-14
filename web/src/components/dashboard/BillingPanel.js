@@ -16,7 +16,8 @@ export default function BillingPanel({ stats }) {
   const tiers = [...config.creditTiers].reverse();
 
   return (
-    <div className="space-y-5">
+    // flex + gap (not space-y): antd's Alert resets its own margin, which swallowed the spacing
+    <div className="flex flex-col gap-7">
       <Alert
         type="info"
         showIcon
@@ -37,16 +38,18 @@ export default function BillingPanel({ stats }) {
 
       {billingPeriods.map((p) => (
         <div key={p.month}>
-          <div className="mb-2 flex flex-wrap items-center gap-2">
+          <div className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-2">
             <h4 className="m-0 text-base font-semibold">{dayjs.utc(`${p.month}-01`).format('MMMM YYYY')}</h4>
             {p.partial ? (
-              <Tag color="warning">
+              <Tag color="warning" className="m-0!">
                 Partial: {p.observedDays} of {p.daysInMonth} days observed
               </Tag>
             ) : (
-              <Tag color="success">Full month observed</Tag>
+              <Tag color="success" className="m-0!">
+                Full month observed
+              </Tag>
             )}
-            <span className="text-xs text-slate-500">
+            <span className="text-sm text-slate-500">
               Monthly budget at {config.targetPct}%: {p.monthlyBudgetMinutes} min of downtime
             </span>
           </div>
