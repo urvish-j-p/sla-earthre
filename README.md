@@ -7,7 +7,7 @@ Every number traces back to the raw CSV rows it came from.
 | | |
 |---|---|
 | **Live app** | `https://<your-app>.vercel.app` ← _fill in after deploy_ |
-| **Ingest function** | `https://<id>.lambda-url.ap-south-1.on.aws/` (AWS Lambda Function URL) |
+| **Ingest function** | https://jtjjiwvjnni4woauihtbov5l240bhpsu.lambda-url.ap-south-1.on.aws/ (AWS Lambda Function URL, `ap-south-1`; `GET` = health check) |
 | **Last verified live** | _YYYY-MM-DD HH:MM IST_ |
 | **Stack** | Next.js 16 (JavaScript) · antd 6 · Tailwind 4 · AWS Lambda (Node 22) · Prisma Postgres · Prisma 6 |
 
