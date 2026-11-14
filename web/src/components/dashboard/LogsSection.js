@@ -138,7 +138,7 @@ export default function LogsSection({ uploadId, stats, filters, setParams }) {
         />
         {mode === 'day' ? (
           <DatePicker
-            className="w-full xl:w-44!"
+            className="w-full xl:w-40!"
             placeholder="Any day (UTC)"
             value={filters.from ? dayjs(filters.from, DAY) : null}
             disabledDate={disabledDate}
@@ -147,7 +147,7 @@ export default function LogsSection({ uploadId, stats, filters, setParams }) {
           />
         ) : (
           <DatePicker.RangePicker
-            className="w-full xl:w-64!"
+            className="w-full xl:w-60!"
             value={filters.from ? [dayjs(filters.from, DAY), dayjs(filters.to ?? filters.from, DAY)] : null}
             disabledDate={disabledDate}
             defaultPickerValue={[dayjs(firstDay, DAY), dayjs(firstDay, DAY)]}
@@ -158,7 +158,7 @@ export default function LogsSection({ uploadId, stats, filters, setParams }) {
           mode="multiple"
           allowClear
           placeholder="All services"
-          className="w-full xl:w-52!"
+          className="w-full xl:w-44!"
           maxTagCount="responsive"
           value={filters.services}
           onChange={(v) => setParams({ service: v })}
@@ -168,7 +168,7 @@ export default function LogsSection({ uploadId, stats, filters, setParams }) {
           mode="multiple"
           allowClear
           placeholder="Any outcome"
-          className="w-full xl:w-44!"
+          className="w-full xl:w-40!"
           maxTagCount="responsive"
           value={filters.outcomes}
           onChange={(v) => setParams({ outcome: v })}
@@ -178,7 +178,7 @@ export default function LogsSection({ uploadId, stats, filters, setParams }) {
           mode="multiple"
           allowClear
           placeholder="Any data-quality flag"
-          className="w-full sm:col-span-2 xl:w-80!"
+          className="w-full sm:col-span-2 xl:w-64!"
           maxTagCount="responsive"
           popupMatchSelectWidth={false}
           optionFilterProp="label"

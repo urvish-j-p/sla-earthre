@@ -102,7 +102,8 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="space-y-5">
+    // flex + gap (not space-y): antd's Collapse resets its own margin, which swallowed space-y spacing
+    <div className="flex flex-col gap-4 sm:gap-5">
       <DatasetBar uploads={uploads} uploadId={uploadId} stats={stats} onSelect={selectUpload} />
 
       {statsQuery.error ? (
