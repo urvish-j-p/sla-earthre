@@ -21,6 +21,9 @@
     "@prisma/client": "6.19.3"
   },
   "devDependencies": {
+    "@aws-sdk/client-iam": "^3.1169.0",
+    "@aws-sdk/client-lambda": "^3.1169.0",
+    "adm-zip": "^0.6.1",
     "prisma": "6.19.3"
   }
 }
