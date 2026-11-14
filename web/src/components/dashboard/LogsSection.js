@@ -93,7 +93,7 @@ export default function LogsSection({ uploadId, stats, filters, setParams }) {
     return s < firstDay || s > lastDay;
   };
 
-  const hasFilters = filters.from || filters.services.length || filters.outcomes.length || filters.flags.length;
+  const hasFilters = Boolean(filters.from || filters.services.length || filters.outcomes.length || filters.flags.length);
   const summary = data?.summary;
 
   return (
