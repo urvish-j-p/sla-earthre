@@ -81,7 +81,7 @@ export default function AvailabilityHeatmap({ stats, onDrillDown }) {
                       type="button"
                       aria-label={`${svc.serviceName} ${c.date}: ${fmtPct(c.availabilityPct)}`}
                       onClick={() => onDrillDown({ from: c.date, services: [svc.serviceId] })}
-                      className="relative h-[26px] cursor-pointer rounded-[4px] outline-offset-1 transition-transform hover:scale-110 hover:outline hover:outline-2 hover:outline-slate-700"
+                      className="relative h-[26px] cursor-pointer rounded-[4px] transition hover:brightness-90 hover:ring-2 hover:ring-inset hover:ring-slate-800 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-slate-800 focus-visible:outline-none"
                       style={{ background: availabilityColor(c.availabilityPct) }}
                     >
                       {hasIncident && <span className="absolute inset-0 grid place-items-center text-[10px] text-white">●</span>}
