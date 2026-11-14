@@ -9,7 +9,7 @@ Every number traces back to the raw CSV rows it came from.
 | **Live app** | `https://<your-app>.vercel.app` ← _fill in after deploy_ |
 | **Ingest function** | `https://<id>.lambda-url.ap-south-1.on.aws/` (AWS Lambda Function URL) |
 | **Last verified live** | _YYYY-MM-DD HH:MM IST_ |
-| **Stack** | Next.js 16 (JavaScript) · antd 6 · Tailwind 4 · AWS Lambda (Node 22) · PostgreSQL (Neon) · Prisma 6 |
+| **Stack** | Next.js 16 (JavaScript) · antd 6 · Tailwind 4 · AWS Lambda (Node 22) · Prisma Postgres · Prisma 6 |
 
 ---
 
@@ -37,7 +37,7 @@ flowchart LR
     subgraph Vercel["Vercel (Next.js)"]
       API["Route handlers<br/>/api/uploads/*"]
     end
-    DB[("PostgreSQL (Neon)<br/>uploads · checks")]
+    DB[("Prisma Postgres<br/>uploads · checks")]
 
     U -- "POST raw CSV (text/csv)" --> L
     L -- "1 transaction:<br/>upload + all checks" --> DB
@@ -50,8 +50,8 @@ flowchart LR
 |---|---|---|
 | **Upload UI + dashboard** | Next.js 16 on **Vercel** (Hobby, free) | One app for both screens. Route handlers sit next to the UI, so the read API needs no separate backend. Vercel deploys Next.js with zero config. |
 | **Ingest function** | **AWS Lambda**, Node 22, exposed through a **Function URL** | Required by the brief. The free tier (1M requests and 400k GB-s per month) covers this many times over. A Function URL avoids API Gateway: one fewer service, and built-in CORS. The browser uploads **directly** to Lambda, so the processing step really is the cloud function and not a Next.js route posing as one. |
-| **Database** | **PostgreSQL on Neon** (free tier) | The data is relational and queried by time range, so Postgres with a `(upload_id, checked_at)` index is a natural fit. Neon offers serverless Postgres with a **pooled** endpoint, which matters when Lambda and Vercel functions each open connections. |
-| **ORM** | **Prisma 6**, one schema in [`prisma/schema.prisma`](prisma/schema.prisma) | One source of truth used by both the writer (Lambda) and the reader (web). Migrations are versioned in git. |
+| **Database** | **Prisma Postgres** (free tier) | The data is relational and queried by time range, so Postgres with a `(upload_id, checked_at)` index is a natural fit. Prisma Postgres is managed Postgres from the same team as the ORM: one connection string, with pooling handled on its side, which matters when Lambda and Vercel functions each open connections. |
+| **ORM** | **Prisma 6**, one schema in [`web/prisma/schema.prisma`](web/prisma/schema.prisma) | One source of truth used by both the writer (Lambda) and the reader (web). Migrations are versioned in git. The Lambda gets a synced, git-ignored copy before each `prisma generate` ([`sync-schema.mjs`](lambda/scripts/sync-schema.mjs)), because Prisma generates the client next to the schema's own package. |
 
 ### Request flow
 
@@ -72,12 +72,12 @@ flowchart LR
 ### Repository layout
 
 ```
-prisma/            schema.prisma + migrations (shared by lambda and web)
 lambda/            AWS Lambda ingest function
   src/pipeline/    csv.js · normalize.js · merge.js · issues.js · index.js (pure, tested)
   src/handler.js   Function URL handler · persist.js (Prisma transaction)
-  scripts/         dev-server (local Function URL) · package (zip) · deploy (AWS SDK)
+  scripts/         dev-server (local Function URL) · package (zip) · deploy (AWS SDK) · sync-schema
 web/               Next.js app
+  prisma/          schema.prisma + migrations (single source of truth)
   src/app/         / (dashboard) · /upload · /api/*
   src/lib/sla/     analytics.js + config.js (SLA, incidents, billing): pure, tested
   src/components/  dashboard/* · upload/*
@@ -212,17 +212,18 @@ of the budget, and anything about regions: every row is `ap-south-1`, so a regio
 
 ### Prerequisites
 
-Node 22+ and a Postgres database (local Postgres works for development; Neon for production).
+Node 22+ and a Postgres database (local Postgres works for development; Prisma Postgres for production).
 
 ### Local development
 
 ```bash
-cp .env.example .env                 # set DATABASE_URL / DIRECT_URL (local Postgres is fine)
+cp .env.example .env                 # set DATABASE_URL (local Postgres is fine)
 cp .env web/.env.local               # Next.js reads env from web/
-npm run install:all                  # installs lambda + web (runs prisma generate)
-npm run db:deploy                    # applies prisma/migrations
-npm run dev:ingest                   # local Function URL stand-in on :3001 (wraps the real handler)
-npm run dev:web                      # dashboard on :3000
+(cd lambda && npm install)           # also syncs the schema and runs prisma generate
+(cd web && npm install)
+(cd web && npm run db:deploy)        # applies web/prisma/migrations
+(cd lambda && npm run dev)           # local Function URL stand-in on :3001 (wraps the real handler)
+(cd web && npm run dev)              # dashboard on :3000, in a second terminal
 ```
 
 Open http://localhost:3000/upload and click one of the sample datasets.
@@ -230,20 +231,21 @@ Open http://localhost:3000/upload and click one of the sample datasets.
 ### Tests
 
 ```bash
-npm test     # 58 tests: pipeline, handler validation, analytics, query parsing, and the answer-key check
+(cd lambda && npm test)   # 36 tests: CSV parsing, normalisation, merge rules, handler validation
+(cd web && npm test)      # 22 tests: SLA analytics, query parsing, and the answer-key check
 ```
 
 ### Deploying (all free tier, ~15 minutes)
 
-**1 · Database (Neon)**: create a project in region `ap-south-1` (Mumbai) and copy two connection strings into `.env`:
-the *pooled* one as `DATABASE_URL` (append `&pgbouncer=true&connection_limit=1`) and the *direct* one as `DIRECT_URL`.
-Then run `npm run db:deploy`.
+**1 · Database (Prisma Postgres)**: create a project at console.prisma.io, copy its direct connection string
+(`postgres://…@db.prisma.io:5432/…`) into `.env` as `DATABASE_URL`, then run `(cd web && npm run db:deploy)`.
 
 **2 · Ingest function (AWS Lambda)**: with AWS credentials in the environment (an IAM user allowed to manage Lambda
 and create one IAM role):
 
 ```bash
-INGEST_ALLOWED_ORIGINS="https://<your-app>.vercel.app" npm run deploy:lambda
+cd lambda
+INGEST_ALLOWED_ORIGINS="https://<your-app>.vercel.app" npm run deploy
 ```
 
 [`deploy.mjs`](lambda/scripts/deploy.mjs) is idempotent. It packages the zip, creates or updates the IAM role (logs only),
@@ -254,10 +256,9 @@ and prints the URL.
 `NEXT_PUBLIC_INGEST_URL` (the Function URL from step 2). Deploy. (`postinstall` runs `prisma generate`; `prebuild`
 copies the sample CSVs from `data/`.)
 
-**Redeploy on demand**: `npm run deploy:lambda` for the function; `git push` or "Redeploy" in Vercel for the web.
+**Redeploy on demand**: `(cd lambda && npm run deploy)` for the function; `git push` or "Redeploy" in Vercel for the web.
 
-**Staying live**: Lambda, Vercel Hobby and Neon free have no expiry. Neon suspends the database after 5 minutes idle,
-so the first request after a pause takes ~1 s longer. `GET /api/health` checks database connectivity.
+**Staying live**: AWS Lambda, Vercel Hobby and Prisma Postgres all have free tiers with no expiry. `GET /api/health` checks database connectivity.
 
 ---
 

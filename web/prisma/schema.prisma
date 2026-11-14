@@ -9,11 +9,10 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  // Pooled connection (PgBouncer) used by serverless runtimes.
-  url       = env("DATABASE_URL")
-  // Direct connection used only by `prisma migrate`.
-  directUrl = env("DIRECT_URL")
+  provider = "postgresql"
+  // One connection string for the app and for migrations (Prisma Postgres
+  // handles connection pooling itself, so no separate direct URL is needed).
+  url      = env("DATABASE_URL")
 }
 
 enum UploadStatus {

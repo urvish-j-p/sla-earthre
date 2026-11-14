@@ -21,3 +21,6 @@ web/public/samples/
 *.log
 .vercel
 coverage/
+
+# lambda gets a synced copy of web/prisma/schema.prisma
+lambda/prisma/
