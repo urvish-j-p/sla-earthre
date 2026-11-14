@@ -141,7 +141,7 @@ export default function LogsSection({ uploadId, stats, filters, setParams }) {
           <DatePicker
             className="w-full xl:w-40!"
             format={DISPLAY_DAY}
-            placeholder="DD-MM-YYYY"
+            placeholder="Any day (UTC)"
             value={filters.from ? dayjs(filters.from, DAY) : null}
             disabledDate={disabledDate}
             defaultPickerValue={dayjs(firstDay, DAY)}
@@ -150,7 +150,7 @@ export default function LogsSection({ uploadId, stats, filters, setParams }) {
         ) : (
           <DatePicker.RangePicker
             format={DISPLAY_DAY}
-            placeholder={['DD-MM-YYYY', 'DD-MM-YYYY']}
+            placeholder={['Start date', 'End date']}
             className="w-full xl:w-60!"
             value={filters.from ? [dayjs(filters.from, DAY), dayjs(filters.to ?? filters.from, DAY)] : null}
             disabledDate={disabledDate}
