@@ -6,9 +6,10 @@ Every number traces back to the raw CSV rows it came from.
 
 | | |
 |---|---|
-| **Live app** | `https://<your-app>.vercel.app` ← _fill in after deploy_ |
+| **Live app** | **https://sla.urvish.site** (upload at [/upload](https://sla.urvish.site/upload)) |
 | **Ingest function** | https://jtjjiwvjnni4woauihtbov5l240bhpsu.lambda-url.ap-south-1.on.aws/ (AWS Lambda Function URL, `ap-south-1`; `GET` = health check) |
-| **Last verified live** | _YYYY-MM-DD HH:MM IST_ |
+| **Last verified live** | 2026-11-14 14:22 IST: pages, upload via Lambda, stats, logs, CSV export, CORS |
+| **Hosting** | Vercel (`sin1`) · AWS Lambda (`ap-south-1`) · Prisma Postgres (`ap-southeast-1`) |
 | **Stack** | Next.js 16 (JavaScript) · antd 6 · Tailwind 4 · AWS Lambda (Node 22) · Prisma Postgres · Prisma 6 |
 
 ---
@@ -245,7 +246,7 @@ and create one IAM role):
 
 ```bash
 cd lambda
-INGEST_ALLOWED_ORIGINS="https://<your-app>.vercel.app" npm run deploy
+INGEST_ALLOWED_ORIGINS="https://sla.urvish.site,http://localhost:3000" npm run deploy
 ```
 
 [`deploy.mjs`](lambda/scripts/deploy.mjs) is idempotent. It packages the zip, creates or updates the IAM role (logs only),
