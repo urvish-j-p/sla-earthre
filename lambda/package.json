@@ -12,7 +12,7 @@
   },
   "scripts": {
     "postinstall": "prisma generate",
-    "test": "node --test test/",
+    "test": "node --test \"test/**/*.test.js\"",
     "dev": "node --env-file=../.env scripts/dev-server.mjs",
     "package": "node scripts/package.mjs",
     "deploy": "node --env-file-if-exists=../.env scripts/deploy.mjs"
