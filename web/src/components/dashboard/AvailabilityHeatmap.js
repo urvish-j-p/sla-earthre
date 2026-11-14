@@ -42,7 +42,8 @@ export default function AvailabilityHeatmap({ stats, onDrillDown }) {
         </div>
       </div>
 
-      <div className="overflow-x-auto pb-2">
+      {/* -mx/px: a few px of room so the hover "pop" (scale + outline) never makes this area scroll */}
+      <div className="-mx-2 overflow-x-auto px-2 pt-1 pb-3">
         <div
           className="grid min-w-max gap-[3px]"
           style={{ gridTemplateColumns: `minmax(88px, 130px) repeat(${daily.days.length}, minmax(22px, 1fr))` }}
@@ -57,7 +58,8 @@ export default function AvailabilityHeatmap({ stats, onDrillDown }) {
           {daily.services.map((svc) => (
             <div key={svc.serviceId} className="contents">
               <div className="truncate pr-2 text-xs font-medium leading-[26px] text-slate-700">{svc.serviceName}</div>
-              {svc.cells.map((c) => {
+              {svc.cells.map((c, idx) => {
+                const isLast = idx === svc.cells.length - 1;
                 const hasIncident = incidentDays.has(`${svc.serviceId}|${c.date}`);
                 return (
                   <Tooltip
@@ -81,7 +83,7 @@ export default function AvailabilityHeatmap({ stats, onDrillDown }) {
                       type="button"
                       aria-label={`${svc.serviceName} ${c.date}: ${fmtPct(c.availabilityPct)}`}
                       onClick={() => onDrillDown({ from: c.date, services: [svc.serviceId] })}
-                      className="relative h-[26px] cursor-pointer rounded-[4px] transition hover:brightness-90 hover:ring-2 hover:ring-inset hover:ring-slate-800 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-slate-800 focus-visible:outline-none"
+                      className={`relative h-[26px] cursor-pointer rounded-[4px] outline-offset-1 transition-transform hover:z-10 hover:scale-110 hover:outline hover:outline-2 hover:outline-slate-700 focus-visible:z-10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-slate-700 ${isLast ? 'origin-right' : ''}`}
                       style={{ background: availabilityColor(c.availabilityPct) }}
                     >
                       {hasIncident && <span className="absolute inset-0 grid place-items-center text-[10px] text-white">●</span>}

@@ -1,12 +1,11 @@
 'use client';
 
-import { CloudUploadOutlined } from '@ant-design/icons';
-import { Alert, Button, Card, Empty, Skeleton } from 'antd';
-import Link from 'next/link';
+import { Alert, Button, Card, Skeleton } from 'antd';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useMemo, useRef } from 'react';
 import { useFetch } from '@/lib/client/useFetch';
 import DatasetBar from './DatasetBar';
+import EmptyState from './EmptyState';
 import LogsSection from './LogsSection';
 import StatsSection from './StatsSection';
 
@@ -79,27 +78,7 @@ export default function Dashboard() {
     );
   }
 
-  if (uploads.length === 0) {
-    return (
-      <Card className="mx-auto max-w-2xl mt-10!">
-        <Empty
-          image={Empty.PRESENTED_IMAGE_SIMPLE}
-          description={
-            <div className="space-y-1">
-              <div className="text-base font-medium text-slate-800">No datasets yet</div>
-              <div className="text-slate-500">Upload a health-check CSV to compute SLA, incident and credit numbers.</div>
-            </div>
-          }
-        >
-          <Link href="/upload">
-            <Button type="primary" icon={<CloudUploadOutlined />}>
-              Upload a CSV
-            </Button>
-          </Link>
-        </Empty>
-      </Card>
-    );
-  }
+  if (uploads.length === 0) return <EmptyState />;
 
   return (
     // flex + gap (not space-y): antd's Collapse resets its own margin, which swallowed space-y spacing

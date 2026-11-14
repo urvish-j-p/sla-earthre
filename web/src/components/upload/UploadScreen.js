@@ -213,6 +213,8 @@ export default function UploadScreen() {
 
       {(phase === 'idle' || phase === 'error') && samples.length > 0 && (
         <Card
+          id="samples"
+          className="scroll-mt-20"
           size="small"
           styles={{ title: { whiteSpace: 'normal' } }}
           title={
