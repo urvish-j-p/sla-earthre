@@ -9,7 +9,8 @@ import { useFetch } from '@/lib/client/useFetch';
 import { OUTCOME_COLOR } from '@/lib/colors';
 import { fmtInt, fmtMs, fmtUtc } from '@/lib/format';
 
-const DAY = 'YYYY-MM-DD';
+const DAY = 'YYYY-MM-DD'; // URL / API format (ISO, unambiguous)
+const DISPLAY_DAY = 'DD-MM-YYYY'; // what the user sees and types
 
 function SourceRows({ sources }) {
   return (
@@ -139,7 +140,8 @@ export default function LogsSection({ uploadId, stats, filters, setParams }) {
         {mode === 'day' ? (
           <DatePicker
             className="w-full xl:w-40!"
-            placeholder="Any day (UTC)"
+            format={DISPLAY_DAY}
+            placeholder="DD-MM-YYYY"
             value={filters.from ? dayjs(filters.from, DAY) : null}
             disabledDate={disabledDate}
             defaultPickerValue={dayjs(firstDay, DAY)}
@@ -147,6 +149,8 @@ export default function LogsSection({ uploadId, stats, filters, setParams }) {
           />
         ) : (
           <DatePicker.RangePicker
+            format={DISPLAY_DAY}
+            placeholder={['DD-MM-YYYY', 'DD-MM-YYYY']}
             className="w-full xl:w-60!"
             value={filters.from ? [dayjs(filters.from, DAY), dayjs(filters.to ?? filters.from, DAY)] : null}
             disabledDate={disabledDate}
